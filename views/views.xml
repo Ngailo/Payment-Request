@@ -1,0 +1,131 @@
+<odoo>
+  <data>
+      
+   <record id="pay_req_seq_id" model="ir.sequence">
+            <field name="name">Payment Request Sequence</field>
+            <field name="code">account.payment.request</field>
+            <field name="prefix">PAY_REQ/%(range_year)s-</field>
+            <field name="padding">3</field>
+            <field name="suffix"></field>
+    </record>
+      
+      
+    <!-- explicit list view definition -->
+    <record model="ir.ui.view" id="pay_req.list">
+      <field name="name">payment_request list view</field>
+      <field name="model">account.payment.request</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="employee_id"/>
+          <field name="name"/>
+          <field name="pay_to"/>
+          <field name="payment_amount" widget="monetary" />
+          <field name="currency_id" invisible="1"/>
+         <field name="state"/>
+        </tree>
+      </field>
+    </record>
+      
+    <!-- explicit form view definition -->
+      
+      <record model="ir.ui.view" id="pay_req_view">
+        <field name="name">payment_request form view</field>
+        <field name="model">account.payment.request</field>
+        <field name="arch" type="xml">
+          <form>
+               <header>
+                        <button string="Send Request" name="action_draft" states="draft" type="object" class="oe_highlight"/>
+                        <button string="Cancel" name="action_cancel" states="draft" type="object" class="oe_highlight"/>
+                        <button string="Approval" name="action_approval" states="approve" type="object"  class="oe_highlight" groups = "pay_req.group_payment_manager"/>
+                        <button string="Refuse" name="action_refuse" states="approve" type="object" groups = "pay_req.group_payment_manager" />
+                        <field name="state" widget="statusbar" statusbar_visible="draft,approve,validate"/>
+                </header>
+              <sheet>
+                  <group>
+                            <group name="group_left"> 
+                                <field name="employee_id" attrs="{'readonly': [('state', 'in', ('approve', 'validate'))]}"/>
+                                <field name="request_date"  attrs="{'readonly': [('state', 'in', ('approve', 'validate'))]}"/>
+                                <field name="journal_id" groups = "pay_req.group_payment_manager" attrs="{'invisible':[('state', 'in', ('validate'))]}"/>
+                                <field name="journ_id" attrs="{'invisible':[('state', 'not in', ('validate'))]}"/>
+                            </group>
+                  
+                    
+                  
+                        <group name="group_right">
+                            <field name="currency_id" attrs="{'readonly': [('state', 'in', ('approve', 'validate'))]}"/>
+                            <field name="payment_amount" attrs="{'readonly': [('state', 'in', ('approve', 'validate'))]}"/>
+                            <field name="pay_to" attrs="{'readonly': [('state', 'in', ('approve', 'validate'))]}"/>
+                            <field name="partner_id" attrs="{'invisible':[('pay_to','=','petty')], 'readonly': [('state', 'in', ('approve', 'validate'))]}" />
+                        </group>
+                  
+                   
+                    <group>
+                         <field name="description" nolabel="1" colspan="4" placeholder="Reason for this required amount..."/>
+                    </group>
+                       
+                    
+                  </group>
+              </sheet>
+              
+              <div class="oe_chatter">
+                       <field name="message_follower_ids" widget="mail_followers"/>
+                       <field name="message_ids" widget="mail_thread"/>
+            </div>
+          </form>
+       </field>
+    </record>
+
+    <!-- actions opening views on models -->
+    
+    <record model="ir.actions.act_window" id="pay_req.action_window">
+      <field name="name">payment_request window</field>
+      <field name="res_model">account.payment.request</field>
+      <field name="view_mode">tree,form</field>
+      <field name="context" eval="{'search_default_my_requests': 1}"/>
+    </record>
+      
+    <record model="ir.actions.act_window" id="pay_req.action_window_manager">
+      <field name="name">payment_request window</field>
+      <field name="res_model">account.payment.request</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    
+
+   
+
+    <!-- Top menu item -->
+    <menuitem name="Payment Request" parent="account.menu_finance"
+                id="menu_sub_payment_request"
+                 sequence="3"/>
+      <menuitem name="Ask Request" parent="menu_sub_payment_request"
+                id="menu_sub_hr_root" action="pay_req.action_window"/>  
+      <menuitem name="Request Approval" parent="menu_sub_payment_request"
+                id="menu_sub_manager_root" action="pay_req.action_window_manager" groups="group_payment_manager"/> 
+
+      
+      <!--Action for Payment Request to be approved by manager-->
+      <record model="ir.actions.act_window" id="pay_req.action_window_manager">
+          <field name="name">Manager</field>
+          <field name="res_model">account.payment.request</field>
+          <field name="domain">[('state','=','approve')]</field>
+          <field name="view_mode">tree,form</field>
+      </record>
+      
+      
+      <!-- Search View -->
+         <record id="view_pay_req" model="ir.ui.view">
+            <field name="name">PAYMENT REQUEST</field>
+            <field name="model">account.payment.request</field>
+            <field name="arch" type="xml">
+                <search string="Search Request">
+                    <field name="employee_id"/>
+                    <filter name="my_requests" string="My PAY_REQ" domain="[('create_uid', '=', uid)]"/>
+                    <group string = "Group By">
+                        <filter name = "By Employee" string="Employee Request"
+                                context = "{'group_by': 'employee_id'}"/>
+                    </group>
+                </search>
+            </field>
+         </record>
+  </data>
+</odoo>

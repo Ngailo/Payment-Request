@@ -1,0 +1,30 @@
+<odoo>
+    <data>
+         <record id="group_payment_user" model="res.groups">
+            <field name="name">Payment Request / Users</field>
+        </record>
+        
+         <record id="group_payment_manager" model="res.groups">
+            <field name="name">Payment Request / Manager</field>
+       </record>
+        
+         <record id="account_payment_request_rule" model="ir.rule">
+           <field name="name">Payment Request for User Access Rule</field>
+           <field ref="model_account_payment_request" name="model_id"/>
+           <field name="domain_force">
+               [('create_uid', '=', user.id)]
+           </field>
+           <field name="groups" eval="[(4, ref('pay_req.group_payment_user'))]"/>
+       </record>
+        
+         <record id="payment_manager_rule" model="ir.rule">
+           <field name="name">Payment Request for Manager Access Rule</field>
+           <field ref="model_account_payment_request" name="model_id"/>
+           <field name="domain_force">
+               [(1, '=', 1)]
+           </field>
+           <field name="groups" eval="[(4, ref('pay_req.group_payment_manager'))]"/>
+           <field name="context" eval="{'search_default_my_requests': 0}"/>
+       </record>
+    </data>
+</odoo>
